@@ -1,0 +1,119 @@
+"use client"
+
+import type React from "react"
+
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+
+export default function SignupPage() {
+  const router = useRouter()
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [name, setName] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+
+    // Simulate signup
+    await new Promise((resolve) => setTimeout(resolve, 800))
+
+    // Store signup state
+    localStorage.setItem("beacon_logged_in", "true")
+    localStorage.setItem("beacon_user_email", email)
+    if (name) {
+      localStorage.setItem("beacon_user_name", name)
+    }
+
+    // Route to subscribe
+    router.push("/subscribe")
+  }
+
+  return (
+    <div className="min-h-screen bg-background text-foreground flex items-center justify-center px-4">
+      <div className="w-full max-w-md">
+        {/* Logo */}
+        <div className="text-center mb-12">
+          <h1 className="text-3xl font-mono font-bold tracking-tight">BEACON</h1>
+          <p className="text-muted-foreground text-sm mt-2">Polymarket Intelligence</p>
+        </div>
+
+        {/* Signup Form */}
+        <div className="border border-border rounded-lg p-8 bg-card/50 backdrop-blur">
+          <h2 className="text-xl font-mono font-semibold mb-6">Create your Beacon account</h2>
+
+          <form onSubmit={handleSignup} className="space-y-4">
+            <div>
+              <label htmlFor="name" className="text-sm text-muted-foreground block mb-2">
+                Display Name (optional)
+              </label>
+              <input
+                id="name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Your name"
+                className="w-full px-4 py-2 bg-input border border-border rounded text-foreground placeholder-muted-foreground text-sm focus:outline-none focus:border-accent"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="email" className="text-sm text-muted-foreground block mb-2">
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="you@example.com"
+                className="w-full px-4 py-2 bg-input border border-border rounded text-foreground placeholder-muted-foreground text-sm focus:outline-none focus:border-accent"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="password" className="text-sm text-muted-foreground block mb-2">
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="••••••••"
+                className="w-full px-4 py-2 bg-input border border-border rounded text-foreground placeholder-muted-foreground text-sm focus:outline-none focus:border-accent"
+              />
+            </div>
+
+            <Button
+              type="submit"
+              disabled={isLoading || !email || !password}
+              className="w-full mt-6 bg-accent text-accent-foreground hover:bg-accent/90 font-mono cursor-pointer"
+            >
+              {isLoading ? "Creating account..." : "Create Account"}
+            </Button>
+          </form>
+
+          <p className="text-center text-sm text-muted-foreground mt-6">
+            Already have an account?{" "}
+            <Link href="/login" className="text-accent hover:underline cursor-pointer">
+              Log in
+            </Link>
+          </p>
+        </div>
+
+        {/* Back to landing */}
+        <div className="text-center mt-8">
+          <Link href="/" className="text-sm text-muted-foreground hover:text-foreground transition cursor-pointer">
+            Back to Beacon
+          </Link>
+        </div>
+      </div>
+    </div>
+  )
+}
