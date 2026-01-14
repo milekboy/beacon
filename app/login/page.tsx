@@ -22,22 +22,37 @@ export default function LoginPage() {
 
     try {
       const api = NetworkInstance()
-      const response = await api.post("/auth/login", {
-        username: email,
-        password
+
+      // Create form data - FastAPI OAuth2 expects form-urlencoded data
+      const formData = new URLSearchParams()
+      formData.append("username", email)
+      formData.append("password", password)
+
+      const response = await api.post("/auth/login", formData, {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        }
       })
+      const { access_token, user } = response.data
 
-      // Store login state
+      // Store login state and token
       localStorage.setItem("beacon_logged_in", "true")
-      localStorage.setItem("beacon_user_email", email)
+      localStorage.setItem("beacon_user_email", user.email)
+      localStorage.setItem("beacon_access_token", access_token)
+      localStorage.setItem("beacon_user_name", user.name)
+      localStorage.setItem("beacon_payment_plan", user.payment_plan)
 
-      // Route to subscribe
-      router.push("/subscribe")
+      // Route based on payment plan
+      if (user.payment_plan === "freemium") {
+        router.push("/subscribe")
+      } else {
+        router.push("/dashboard")
+      }
     } catch (err: any) {
       console.error("Login error:", err)
       setError(
-        err.response?.data?.message || 
-        err.response?.data?.error || 
+        err.response?.data?.message ||
+        err.response?.data?.error ||
         "Failed to login. Please check your credentials."
       )
       setIsLoading(false)

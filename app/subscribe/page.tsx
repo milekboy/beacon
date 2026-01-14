@@ -3,11 +3,13 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import NetworkInstance from "@/components/network/NetworkInstance"
 
 export default function SubscribePage() {
   const router = useRouter()
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     // Check if user is logged in
@@ -21,15 +23,37 @@ export default function SubscribePage() {
 
   const handleSubscribe = async () => {
     setIsLoading(true)
+    setError(null)
 
-    // Simulate subscription
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    try {
+      const api = NetworkInstance()
+      const accessToken = localStorage.getItem("beacon_access_token")
 
-    // Store subscription state
-    localStorage.setItem("beacon_subscribed", "true")
+      const response = await api.post("/paystack/initialize", null, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      })
 
-    // Route to dashboard
-    router.push("/dashboard")
+      console.log("Paystack Response:", response)
+      console.log("Paystack Data:", response.data)
+
+      // The endpoint returns the authorization URL as a string
+      const authorizationUrl = response.data?.url
+
+
+      if (authorizationUrl && typeof authorizationUrl === "string") {
+        // Redirect user to Paystack payment page
+        window.location.href = authorizationUrl
+      } else {
+        throw new Error("Invalid response from payment server")
+      }
+    } catch (err: unknown) {
+      console.error("Subscription error:", err)
+      const errorMessage = err instanceof Error ? err.message : "Failed to initialize payment. Please try again."
+      setError(errorMessage)
+      setIsLoading(false)
+    }
   }
 
   if (!isLoggedIn) {
@@ -70,7 +94,7 @@ export default function SubscribePage() {
               <span className="text-accent mr-3">→</span>
               <span>Browser push notifications</span>
             </li>
-               <li className="flex items-start">
+            <li className="flex items-start">
               <span className="text-accent mr-3">→</span>
               <span>Access to Telegram Channel with live signals</span>
             </li>
@@ -83,6 +107,13 @@ export default function SubscribePage() {
               <span>Early-warning alerts</span>
             </li>
           </ul>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+              <p className="text-red-500 text-sm text-center">{error}</p>
+            </div>
+          )}
 
           {/* CTA Button */}
           <Button
