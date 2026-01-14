@@ -6,6 +6,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import NetworkInstance from "@/components/network/NetworkInstance"
 
 export default function SignupPage() {
   const router = useRouter()
@@ -13,23 +14,39 @@ export default function SignupPage() {
   const [password, setPassword] = useState("")
   const [name, setName] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError("")
 
-    // Simulate signup
-    await new Promise((resolve) => setTimeout(resolve, 800))
+    try {
+      const api = NetworkInstance()
+      const response = await api.post("/auth/signup", {
+        email,
+        name,
+        password
+      })
 
-    // Store signup state
-    localStorage.setItem("beacon_logged_in", "true")
-    localStorage.setItem("beacon_user_email", email)
-    if (name) {
-      localStorage.setItem("beacon_user_name", name)
+      // Store signup state
+      localStorage.setItem("beacon_logged_in", "true")
+      localStorage.setItem("beacon_user_email", email)
+      if (name) {
+        localStorage.setItem("beacon_user_name", name)
+      }
+
+      // Route to subscribe
+      router.push("/subscribe")
+    } catch (err: any) {
+      console.error("Signup error:", err)
+      setError(
+        err.response?.data?.message || 
+        err.response?.data?.error || 
+        "Failed to create account. Please try again."
+      )
+      setIsLoading(false)
     }
-
-    // Route to subscribe
-    router.push("/subscribe")
   }
 
   return (
@@ -48,7 +65,7 @@ export default function SignupPage() {
           <form onSubmit={handleSignup} className="space-y-4">
             <div>
               <label htmlFor="name" className="text-sm text-muted-foreground block mb-2">
-                Display Name (optional)
+              Full Name 
               </label>
               <input
                 id="name"
@@ -89,6 +106,12 @@ export default function SignupPage() {
                 className="w-full px-4 py-2 bg-input border border-border rounded text-foreground placeholder-muted-foreground text-sm focus:outline-none focus:border-accent"
               />
             </div>
+
+            {error && (
+              <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded px-4 py-2">
+                {error}
+              </div>
+            )}
 
             <Button
               type="submit"
