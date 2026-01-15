@@ -30,19 +30,15 @@ export default function SignupPage() {
       })
 
       // Store signup state
-      localStorage.setItem("beacon_logged_in", "true")
-      localStorage.setItem("beacon_user_email", email)
-      if (name) {
-        localStorage.setItem("beacon_user_name", name)
-      }
+
 
       // Route to subscribe
-      router.push("/subscribe")
+      router.push("/login")
     } catch (err: any) {
       console.error("Signup error:", err)
       setError(
-        err.response?.data?.message || 
-        err.response?.data?.error || 
+        err.response?.data?.message ||
+        err.response?.data?.error ||
         "Failed to create account. Please try again."
       )
       setIsLoading(false)
@@ -65,7 +61,7 @@ export default function SignupPage() {
           <form onSubmit={handleSignup} className="space-y-4">
             <div>
               <label htmlFor="name" className="text-sm text-muted-foreground block mb-2">
-              Full Name 
+                Full Name
               </label>
               <input
                 id="name"

@@ -45,7 +45,7 @@ export default function LoginPage() {
       // Route based on payment plan
       if (user.payment_plan === "freemium") {
         router.push("/subscribe")
-      } else {
+      } else if (user.payment_plan === "premium") {
         router.push("/dashboard")
       }
     } catch (err: any) {

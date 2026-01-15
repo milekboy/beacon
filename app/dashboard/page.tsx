@@ -11,9 +11,9 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Check authorization
     const loggedIn = localStorage.getItem("beacon_logged_in") === "true"
-    const subscribed = localStorage.getItem("beacon_subscribed") === "true"
+    const plan = localStorage.getItem("beacon_payment_plan")
+    const subscribed = plan === "premium"
 
     if (!loggedIn) {
       router.push("/login")
@@ -28,6 +28,7 @@ export default function DashboardPage() {
     setIsAuthorized(true)
     setIsLoading(false)
   }, [router])
+
 
   if (isLoading) {
     return (
