@@ -11,7 +11,7 @@ export default function SubscribePage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [paymentType, setPaymentType] = useState<"local" | "international">("international")
-  const [price, setPrice] = useState({ amount: 10, currency: "USD" })
+  const [price, setPrice] = useState({ amount: 10, currency: "-" })
 
   // ✅ Auth check
   useEffect(() => {
@@ -160,7 +160,7 @@ export default function SubscribePage() {
         {/* Back button */}
         <div className="text-center mt-4">
           <button
-            onClick={() => router.back()}
+            onClick={() => router.push('/login')}
             className="text-sm text-muted-foreground hover:text-foreground transition cursor-pointer"
           >
             Back
