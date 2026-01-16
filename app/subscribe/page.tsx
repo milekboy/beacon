@@ -10,9 +10,11 @@ export default function SubscribePage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [paymentType, setPaymentType] = useState<"local" | "international">("international")
+  const [price, setPrice] = useState({ amount: 10, currency: "USD" })
 
+  // ✅ Auth check
   useEffect(() => {
-    // Check if user is logged in
     const loggedIn = localStorage.getItem("beacon_logged_in") === "true"
     if (!loggedIn) {
       router.push("/login")
@@ -20,6 +22,34 @@ export default function SubscribePage() {
     }
     setIsLoggedIn(true)
   }, [router])
+
+  // ✅ Location detection MUST be before any return
+  useEffect(() => {
+    const detectLocation = async () => {
+      try {
+        const res = await fetch("https://ipapi.co/json/")
+        const data = await res.json()
+
+        if (data?.country === "NG") {
+          setPaymentType("local")
+          setPrice({ amount: 5000, currency: "NGN" })
+        } else {
+          setPaymentType("international")
+          setPrice({ amount: 10, currency: "USD" })
+        }
+      } catch {
+        setPaymentType("international")
+        setPrice({ amount: 10, currency: "USD" })
+      }
+    }
+
+    detectLocation()
+  }, [])
+
+  // ❌ NO hooks below this point
+  if (!isLoggedIn) {
+    return null
+  }
 
   const handleSubscribe = async () => {
     setIsLoading(true)
@@ -29,35 +59,27 @@ export default function SubscribePage() {
       const api = NetworkInstance()
       const accessToken = localStorage.getItem("beacon_access_token")
 
-      const response = await api.post("/paystack/initialize", null, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`
+      const response = await api.post(
+        "/payment/initialize",
+        { payment_type: paymentType },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
         }
-      })
+      )
 
-      console.log("Paystack Response:", response)
-      console.log("Paystack Data:", response.data)
-
-      // The endpoint returns the authorization URL as a string
       const authorizationUrl = response.data?.url
 
-
       if (authorizationUrl && typeof authorizationUrl === "string") {
-        // Redirect user to Paystack payment page
         window.location.href = authorizationUrl
       } else {
         throw new Error("Invalid response from payment server")
       }
     } catch (err: unknown) {
-      console.error("Subscription error:", err)
-      const errorMessage = err instanceof Error ? err.message : "Failed to initialize payment. Please try again."
-      setError(errorMessage)
+      setError(err instanceof Error ? err.message : "Payment failed")
       setIsLoading(false)
     }
-  }
-
-  if (!isLoggedIn) {
-    return null
   }
 
   const userEmail = localStorage.getItem("beacon_user_email") || "user@example.com"
@@ -80,9 +102,13 @@ export default function SubscribePage() {
 
           {/* Price */}
           <div className="mb-8">
-            <span className="text-4xl font-mono font-bold">$20</span>
+            <span className="text-3xl font-mono font-bold">
+              {price.currency === "NGN" ? "₦" : "$"}
+              {price.amount.toLocaleString()}
+            </span>
             <span className="text-muted-foreground text-sm">/month</span>
           </div>
+
 
           {/* Features */}
           <ul className="space-y-3 mb-8 text-sm">
