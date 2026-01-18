@@ -14,7 +14,7 @@ export default function DashboardPage() {
     const loggedIn = localStorage.getItem("beacon_logged_in") === "true"
     const plan = localStorage.getItem("beacon_payment_plan")
     const subscribed = plan === "premium"
-
+    console.log(loggedIn, plan, subscribed)
     if (!loggedIn) {
       router.push("/login")
       return
